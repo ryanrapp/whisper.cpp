@@ -7103,7 +7103,14 @@ static std::vector<uint32_t> get_alignment_heads_by_layer(const whisper_context_
 // based on
 // https://github.com/openai/whisper/blob/main/whisper/timing.py#L83
 static ggml_tensor * dtw_and_backtrace(ggml_context * ctx, ggml_tensor * x) {
-    WHISPER_ASSERT(ggml_n_dims(x) == 2);
+    // Instead of: WHISPER_ASSERT(ggml_n_dims(x) == 2);
+    if (ggml_n_dims(x) != 2) {
+        WHISPER_LOG_ERROR("dtw_and_backtrace: expected 2D input, got %dD. Returning empty.\n",
+            ggml_n_dims(x));
+        // Return an empty I32 tensor or anything that won't break your downstream code.
+        ggml_tensor * empty = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, 2, 0);
+        return empty;
+    }
 
     int64_t N = x->ne[0];
     int64_t M = x->ne[1];
@@ -7168,7 +7175,11 @@ static ggml_tensor * dtw_and_backtrace(ggml_context * ctx, ggml_tensor * x) {
         } else if (t == 2) {
             --j;
         } else {
-            WHISPER_ASSERT(0);
+            // Instead of WHISPER_ASSERT(0);
+            WHISPER_LOG_ERROR("dtw_and_backtrace: invalid trace step = %d. Stopping backtrace.\n", t);
+            // Return an empty I32 tensor or anything that won't break your downstream code.
+            ggml_tensor * empty = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, 2, 0);
+            return empty;
         }
     }
 
