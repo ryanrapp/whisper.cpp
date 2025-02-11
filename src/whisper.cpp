@@ -7197,12 +7197,25 @@ static void median_filter(struct ggml_tensor * dst , const struct ggml_tensor * 
         return;
     }
     int filter_width = ((median_filter_user_data *) userdata)->filter_width;
+    // Previously: WHISPER_ASSERT(filter_width < a->ne[2]);
     if (filter_width >= a->ne[2]) {
         return;
     }
-    WHISPER_ASSERT(filter_width % 2);
-    WHISPER_ASSERT(ggml_n_dims(a) == 3);
-    WHISPER_ASSERT(a->type == GGML_TYPE_F32);
+    // Previously: WHISPER_ASSERT(filter_width % 2);
+    if (filter_width % 2 == 0) {
+        fprintf(stderr, "median_filter: filter_width must be odd, skipping.\n");
+        return;
+    }
+    // Previously: WHISPER_ASSERT(ggml_n_dims(a) == 3);
+    if (ggml_n_dims(a) != 3) {
+        fprintf(stderr, "median_filter: expected 3D input, got %dD.\n", ggml_n_dims(a));
+        return;
+    }
+    // Previously: WHISPER_ASSERT(a->type == GGML_TYPE_F32);
+    if (a->type != GGML_TYPE_F32) {
+        fprintf(stderr, "median_filter: expected f32 type, got %d.\n", (int)a->type);
+        return;
+    }
 
     std::vector<float> filter;
     filter.reserve(filter_width);
