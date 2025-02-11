@@ -7197,7 +7197,9 @@ static void median_filter(struct ggml_tensor * dst , const struct ggml_tensor * 
         return;
     }
     int filter_width = ((median_filter_user_data *) userdata)->filter_width;
-    WHISPER_ASSERT(filter_width < a->ne[2]);
+    if (filter_width >= a->ne[2]) {
+        return;
+    }
     WHISPER_ASSERT(filter_width % 2);
     WHISPER_ASSERT(ggml_n_dims(a) == 3);
     WHISPER_ASSERT(a->type == GGML_TYPE_F32);
